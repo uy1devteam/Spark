@@ -29,7 +29,7 @@ function isBasicCommand( string $command , array $COMMANDS) {
 	return !is_array(array_values($COMMANDS[$command])[0] ?? true); 
 }
 
-function validateArgs( array $args, array $commands ) {
+function validateArgs(  array $args, array $commands ) {
 	
 	$args = array_values($args);
 	$arg = strtolower( trim( $args[0] ?? '') );
@@ -62,7 +62,8 @@ function parse( array $args ) {
 		$function.=ucfirst($args[0]);
 		unset($args[0]);
 		$args = array_values($args);
-		$function( $args, getopt($options[0], $options[1]) );
+		$dir = getcwd();
+		$function( $dir, $args, getopt($options[0], $options[1]) );
 	}
 	else  {
 		echo "invalid  or missing command\n";
@@ -74,27 +75,21 @@ function parse( array $args ) {
 
 // CLI commands
 
-function Build (array $args=[], array $options=[] ) {
+function Build (string $dir, array $args=[], array $options=[] ) {
 		echo "Building project\n";
 }
 
-function DeleteProject (array $args=[], array $options=[] ) {
-		echo "Deleting project\n";
-}
 
-function DeleteModule (array $args=[], array $options=[] ) {
-		echo "Deleting Module\n";
-}
+function ExportModule (string $dir, array $args=[], array $options=[] ) {}
 
-function ExportModule (array $args=[], array $options=[] ) {}
+function ImportModule (string $dir, array $args=[], array $options=[] ) {}
 
-function ImportModule (array $args=[], array $options=[] ) {}
-
-function CreateProject (array $args=[], array $options=[] ) {
+function CreateProject (string $dir, array $args=[], array $options=[] ) {
 	if( $name = $args[0] ?? false ) {
-		$dir = getcwd()."/$name";
+		$dir .= "/$name";
 		mkdir($dir);
 		recurse_copy(__DIR__."/default-spark-vue", $dir);
+		echo " Project $name created\n";
 	}
 	else {
 		echo "specify project name";
@@ -102,4 +97,29 @@ function CreateProject (array $args=[], array $options=[] ) {
 
 }
 
-function CreateModule (array $args=[], array $options=[] ) {}
+function CreateModule (string $dir, array $args=[], array $options=[] ) {
+	if( $name = $args[0] ?? false ) {
+		unset($args[0]);
+		$dir = file_exists("init.json") ? $dir : 
+				(file_exists("../init.json") ? $dir."/.." :
+				(file_exists("../../init.json") ? $dir."/../.." :
+				(file_exists("../../../init.json") ? $dir."/../../.." : false)));
+		
+		if(!$dir or count($args)>1) {
+			echo !$dir ? " This is not a project folder, type command in project folder \n" : 
+				 "too much arguements : ".implode(" , ", $args)." \n";
+			return;
+		}
+
+		$dir .= "/public/modules/$name";
+		mkdir($dir);
+		recurse_copy(__DIR__."/default-module", $dir);
+		foreach(["css", "js", "config.php", "html"] as $ext) {
+			rename("$dir/default-module.$ext", "$dir/$name.$ext");
+		}
+		echo "module $name created\n";
+	}
+	else {
+		echo "specify module name";
+	}
+}

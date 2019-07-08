@@ -102,7 +102,7 @@ public $html;
 		$moduleDeps = $dependencies["modules"] ?? [];
 		
 		foreach( $cssDeps as $dep) {
-			if( !in_array( trim($dep), $this->loaded["css"]) ) {
+			if( !in_array( trim($dep), $this->loaded["css"]) and !strpos($dep, "http") ) {
 				$this->css .= $this->getCss( $dep,"", $this->makeCurrentDepPath($dep, "css"), $this->makePublicDepPath($dep, "css"));
 				$this->loaded["css"][] = trim($dep);
 			}
