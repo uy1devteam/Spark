@@ -1,0 +1,14 @@
+{
+	"name": "spark",
+	"dependencies": [],
+	"spark_modules": [],
+	"modules": [
+		{
+			name: "main",
+			dependencies: []
+		},
+		{
+
+		}
+	]
+}
